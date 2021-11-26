@@ -1,23 +1,80 @@
-const http = require("http");
+const express = require("express");
+const shortid = require("shortid");
 
-const server = http.createServer((request, response) => {
-  if (request.url === "/") {
-    response.writeHead(200, { "Content-Type": "text/html" });
+let courses = [
+  {
+    id: shortid.generate(),
+    name: "React",
+    teacher: "Ecaterina Popa",
+  },
+  {
+    id: shortid.generate(),
+    name: "Node",
+    teacher: "Ecaterina Popa",
+  },
+  {
+    id: shortid.generate(),
+    name: "Java",
+    teacher: "John Doe",
+  },
+];
 
-    response.write("<html><body><h1>LPD1921 is the best!!!</h1></body></html>");
+const server = express();
+const PORT = 1234;
 
-    response.end();
-  } else if (request.url === "/courses") {
-    response.writeHead(200, { "Content-Type": "text/html" });
-
-    response.write("<html><body><h1>Courses</h1></body></html>");
-
-    response.end();
-  } else {
-    response.end("Invalid response!!");
-  }
+server.get("/", (req, res) => {
+  res.send("<h1>Hello World!!</h1>");
 });
 
-server.listen(1234);
+server.get("/courses", (req, res) => {
+  res.json({ courses });
+});
 
-console.log("Server is running on port 1234...");
+server.post("/courses", express.json(), (req, res) => {
+  console.log("request", req.body);
+  const newCourse = req.body;
+  const shortid = require("shortid");
+  courses.push({ ...newCourse, id: shortid.generate() });
+
+  res.status(201).json({ status: "ok" });
+});
+
+server.put("/edit-course", express.json(), (req, res) => {
+  const updCourse = req.body;
+
+  courses = courses.map((el) => {
+    if (el.id === updCourse.id) {
+      return updCourse;
+    }
+
+    return el;
+  });
+  res.status(200).json({ courses });
+});
+
+server.patch("/edit-course", express.json(), (req, res) => {
+  const updCourse = req.body;
+
+  courses = courses.map((el) => {
+    if (el.id === updCourse.id) {
+      return {
+        ...el,
+        ...updCourse,
+      };
+    }
+
+    return el;
+  });
+  res.status(200).json({ courses });
+});
+
+server.delete("/delete-course/:id", (req, res) => {
+  courses = courses.filter((el) => {
+    return el.id !== req.params.id;
+  });
+  res.status(200).json({ courses });
+});
+
+server.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}...`);
+});
